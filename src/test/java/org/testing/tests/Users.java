@@ -4,6 +4,8 @@ import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.testing.sources.api.UserApi;
+import org.testing.sources.entity.Endpoint;
 import org.testing.sources.entity.User;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -13,55 +15,47 @@ import org.testng.annotations.Test;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
+import static org.testing.sources.support.Config.apiProperties;
 
 public class Users extends Base {
     private final List<User> createdUsers = new ArrayList<>();
-
+    private UserApi userApi = new UserApi(apiProperties.getBaseUrl() + Endpoint.USERS.getPath(),
+            apiProperties.getToken());
     @Test
     public void checkNotExistingUrl() {
+        String invalidEndpoint = "invalidEndpoint";
         Response response = given()
                 .when()
-                .get(apiProperties.getEndPointUrl("users"));
+                .get(apiProperties.getBaseUrl() + invalidEndpoint);
         Assert.assertEquals(response.getStatusCode(), 404);
     }
 
     @Test
     public void checkLoggedOutState() {
-        Response response = given()
-                .when()
-                .get(apiProperties.getBaseUrl() + "users");
+        Response response = userApi.logOut().getAll();
         Assert.assertEquals(response.getStatusCode(), 401);
     }
 
     @Test
-    public void checkLoggedInOutState() {
-        Response response = given().accept(ContentType.JSON).auth().oauth2(apiProperties.getToken())
-                .when()
-                .get(apiProperties.getBaseUrl() + "users");
-        System.out.println(response.body().prettyPrint());
-        Assert.assertEquals(response.getStatusCode(), 200);
+    public void checkLoggedInState() {
+        Assert.assertEquals(userApi.getAll().getStatusCode(), 200);
     }
 
 
     @Test
     public void checkUserCreation() {
         User user = User.generateUser();
-        RequestSpecification requestSpecification = given().accept(ContentType.JSON).auth().oauth2(apiProperties.getToken());
-        Response createUserResponse = requestSpecification .body(user.asMap())
-                .post(apiProperties.getBaseUrl() + "users");
+        Response createUserResponse = userApi.create();
         Assert.assertEquals(createUserResponse.getStatusCode(), 201);
-
-        Response  response =  requestSpecification
-                .when()
-                .get(apiProperties.getBaseUrl() + "users");
-        JsonPath jsonPathEvaluator = response.body().jsonPath();
-        List<String> emails = jsonPathEvaluator.get("email");
-        emails.forEach(email -> Assert.assertEquals(email, user.getEmail()));
+        JsonPath jsonPathEvaluator = userApi.getAll().body().jsonPath();
+        List<String> ids = jsonPathEvaluator.get("id");
+        Assert.assertTrue(ids.contains(user.getId()));
         createdUsers.add(user);
     }
 
     @AfterClass
     public void deleteCreatedUsers() {
-        //delete created users
+        createdUsers.forEach(user-> userApi.init(user).delete());
+
     }
 }

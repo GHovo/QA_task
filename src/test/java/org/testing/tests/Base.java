@@ -1,12 +1,9 @@
 package org.testing.tests;
 
-import org.testing.sources.PropertiesReader;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 
 public class Base {
-
-    protected PropertiesReader apiProperties = new PropertiesReader();
 
 
     @BeforeTest

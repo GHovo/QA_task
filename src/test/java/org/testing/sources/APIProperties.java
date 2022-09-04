@@ -5,11 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-public class PropertiesReader {
+public class APIProperties {
 
     private final Properties prop = new Properties();
 
-    public PropertiesReader() {
+    public APIProperties() {
         try {
             String propertiesFilePath = System.getProperty("user.dir") + "/src/resources/api.properties";
             prop.load( Files.newInputStream(Paths.get(propertiesFilePath)));
@@ -19,7 +19,7 @@ public class PropertiesReader {
     }
 
     public String getEndPointUrl(String endpoint) {
-        return prop.getProperty("base_url") + prop.getProperty(endpoint);
+        return getBaseUrl() + prop.getProperty(endpoint);
     }
 
     public String getBaseUrl() {
