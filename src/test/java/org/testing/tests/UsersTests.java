@@ -1,9 +1,6 @@
 package org.testing.tests;
 
-import io.restassured.http.ContentType;
-import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
 import org.testing.sources.api.UserApi;
 import org.testing.sources.entity.Endpoint;
 import org.testing.sources.entity.User;
@@ -17,9 +14,9 @@ import java.util.*;
 import static io.restassured.RestAssured.given;
 import static org.testing.sources.support.Config.apiProperties;
 
-public class Users extends Base {
+public class UsersTests extends BaseTest {
     private final List<User> createdUsers = new ArrayList<>();
-    private UserApi userApi = new UserApi(apiProperties.getBaseUrl() + Endpoint.USERS.getPath(),
+    private final UserApi userApi = new UserApi(apiProperties.getBaseUrl() + Endpoint.USERS.getPath(),
             apiProperties.getToken());
     @Test
     public void checkNotExistingUrl() {
@@ -47,9 +44,17 @@ public class Users extends Base {
         User user = User.generateUser();
         Response createUserResponse = userApi.create();
         Assert.assertEquals(createUserResponse.getStatusCode(), 201);
-        JsonPath jsonPathEvaluator = userApi.getAll().body().jsonPath();
-        List<String> ids = jsonPathEvaluator.get("id");
-        Assert.assertTrue(ids.contains(user.getId()));
+        Response userResponse = userApi.init(user).get();
+        Assert.assertEquals(userResponse.statusCode(), 200);
+        createdUsers.add(user);
+    }
+    @Test
+    public void checkUserUpdate() {
+        User user = User.generateUser();
+        Response updateResponse = userApi.update(user);
+        Assert.assertEquals(updateResponse.statusCode(), 200);
+        Response userResponse = userApi.init(user).get();
+        Assert.assertEquals(userResponse.statusCode(), 200);
         createdUsers.add(user);
     }
 

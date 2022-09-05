@@ -3,7 +3,7 @@ package org.testing.tests;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
 
-public class Base {
+public class BaseTest {
 
 
     @BeforeTest

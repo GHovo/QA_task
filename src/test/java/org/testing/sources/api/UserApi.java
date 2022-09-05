@@ -6,17 +6,14 @@ import io.restassured.specification.RequestSpecification;
 import org.testing.sources.entity.User;
 
 import static io.restassured.RestAssured.given;
-import static org.testing.sources.support.Config.apiProperties;
 
 public class UserApi {
     private User user;
     private final String userURL;
-    private final String token;
     private  RequestSpecification requestSpecification;
 
     public UserApi(String userURL, String token){
         this.userURL = userURL;
-        this.token = token;
         requestSpecification = given().accept(ContentType.JSON).auth().oauth2(token);
     }
 
@@ -51,7 +48,14 @@ public class UserApi {
     public Response getAll() {
         return  requestSpecification
                 .when()
-                .get(apiProperties.getBaseUrl() + "users");
+                .get(userURL);
+
+    }
+
+    public Response get() {
+        return  requestSpecification
+                .when()
+                .get(userURL +  this.user.getId());
 
     }
 }
